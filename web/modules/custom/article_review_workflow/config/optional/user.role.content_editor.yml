@@ -1,0 +1,27 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - node.type.article
+    - workflows.workflow.article_editorial_workflow
+  module:
+    - article_review_workflow
+    - content_moderation
+    - node
+id: content_editor
+label: 'Content Editor'
+weight: 4
+is_admin: false
+permissions:
+  - 'access content overview'
+  - 'create article content'
+  - 'edit own article content'
+  - 'edit any article content'
+  - 'delete own article content'
+  - 'delete any article content'
+  - 'view own unpublished content'
+  - 'view any unpublished content'
+  - 'use article_editorial_workflow transition submit_for_review'
+  - 'use article_editorial_workflow transition publish'
+  - 'use article_editorial_workflow transition revert_to_draft'
+  - 'view needs review dashboard'

@@ -1,0 +1,7 @@
+article_review_workflow.settings:
+  type: config_object
+  label: 'Article Review Workflow settings'
+  mapping:
+    article_review_notification_email:
+      type: email
+      label: 'Notification email address'

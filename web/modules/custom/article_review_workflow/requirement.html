@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Drupal 11 Custom Module: Article Workflow Summary</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #f9f9f9;
+      }
+      h1,
+      h2,
+      h3 {
+        color: #1a73e8;
+      }
+      h1 {
+        font-size: 24px;
+      }
+      h2 {
+        font-size: 20px;
+        margin-top: 20px;
+      }
+      h3 {
+        font-size: 18px;
+      }
+      p,
+      li {
+        color: #333;
+      }
+      ul,
+      ol {
+        margin: 10px 0;
+        padding-left: 20px;
+      }
+      code {
+        background-color: #e8f0fe;
+        padding: 2px 5px;
+        border-radius: 3px;
+      }
+      .section {
+        background-color: #fff;
+        padding: 15px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+      a.download {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #1a73e8;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 5px;
+        margin-top: 20px;
+      }
+      a.download:hover {
+        background-color: #1557b0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="section">
+      <h1>Drupal 11 Custom Module: Article Workflow Summary</h1>
+      <p>
+        <strong>Goal</strong>: Build a Drupal 11 module to manage an editorial
+        workflow for the "Article" content type, including a dashboard, email
+        notifications, and access control for Editors.
+      </p>
+
+      <h2>1. Create a Workflow</h2>
+      <p>
+        <strong>What</strong>: Set up a workflow called "Article Editorial
+        Workflow" with three states:
+      </p>
+      <ul>
+        <li>Draft</li>
+        <li>Needs Review</li>
+        <li>Approved</li>
+      </ul>
+      <p><strong>Details</strong>:</p>
+      <ul>
+        <li>Apply to the Article content type.</li>
+        <li>Only "Editor" role users can move articles to Approved.</li>
+      </ul>
+
+      <h2>2. Send Email Notifications</h2>
+      <p>
+        <strong>What</strong>: Send an email when an article is set to "Needs
+        Review."
+      </p>
+      <p><strong>Details</strong>:</p>
+      <ul>
+        <li>
+          Email includes:
+          <ul>
+            <li>Article title</li>
+            <li>Article URL</li>
+            <li>Username of the person who changed the state</li>
+          </ul>
+        </li>
+        <li>Use a custom service for email sending.</li>
+        <li>Implement using an EventSubscriber to listen for state changes.</li>
+      </ul>
+
+      <h2>3. Build a Dashboard</h2>
+      <p>
+        <strong>What</strong>: Create a page at
+        <code>/admin/content/needs-review-dashboard</code> showing articles in
+        "Needs Review."
+      </p>
+      <p><strong>Details</strong>:</p>
+      <ul>
+        <li>
+          Display a table with:
+          <ul>
+            <li>Title (linked to article)</li>
+            <li>Author</li>
+            <li>Last Updated</li>
+            <li>Operations (e.g., edit links)</li>
+          </ul>
+        </li>
+        <li>Use Entity Query API to fetch articles.</li>
+        <li>Return table as a renderable array in a controller.</li>
+      </ul>
+
+      <h2>4. Control Access</h2>
+      <p>
+        <strong>What</strong>: Restrict dashboard access to users with the
+        "Editor" role.
+      </p>
+      <p><strong>Details</strong>:</p>
+      <ul>
+        <li>
+          Create a custom permission: <code>View Needs Review Dashboard</code>.
+        </li>
+        <li>Assign to Editor role.</li>
+        <li>
+          Enforce access using:
+          <ul>
+            <li>A custom AccessCheck service, or</li>
+            <li>An <code>_access</code> callback in the routing file.</li>
+          </ul>
+        </li>
+        <li>Non-Editors see a 403 (Access Denied) error.</li>
+      </ul>
+
+      <h2>5. Define a Custom Permission</h2>
+      <p>
+        <strong>What</strong>: Create a permission named
+        <code>View Needs Review Dashboard</code>.
+      </p>
+      <p><strong>Details</strong>:</p>
+      <ul>
+        <li>Define in <code>*.permissions.yml</code> file.</li>
+        <li>Assign to Editor role.</li>
+      </ul>
+
+      <h2>6. Follow Coding Standards and Document</h2>
+      <p><strong>What</strong>: Write clean code and provide documentation.</p>
+      <p><strong>Details</strong>:</p>
+      <ul>
+        <li>Use Drupal Coding Standards and PSR-4 namespacing.</li>
+        <li>Add Docblocks to all classes and methods.</li>
+        <li>
+          Create a <code>README.md</code> explaining:
+          <ul>
+            <li>Module setup</li>
+            <li>Workflow assignment</li>
+            <li>Permission management</li>
+            <li>Testing instructions</li>
+          </ul>
+        </li>
+      </ul>
+
+      <h2>7. Package as a Recipe (Optional)</h2>
+      <p>
+        <strong>What</strong>: Create a Drupal Recipe to make the module
+        reusable.
+      </p>
+      <p><strong>Details</strong>:</p>
+      <ul>
+        <li>
+          The Recipe should:
+          <ul>
+            <li>Set up the workflow and assign to Articles.</li>
+            <li>Create and assign the custom permission.</li>
+            <li>Register the dashboard route.</li>
+            <li>List dependencies.</li>
+          </ul>
+        </li>
+        <li>Include instructions to apply the Recipe.</li>
+      </ul>
+
+      <h2>8. Optional Bonus</h2>
+      <p>
+        <strong>What</strong>: Add a settings form to configure the email
+        recipient for notifications.
+      </p>
+
+      <h2>9. Folder Structure and Files</h2>
+      <p><strong>What</strong>: Organize the module properly.</p>
+      <p><strong>Details</strong>:</p>
+      <ul>
+        <li>
+          Use folders like <code>src/EventSubscriber</code> and
+          <code>src/Controller</code>.
+        </li>
+        <li>Define route in <code>*.routing.yml</code>.</li>
+        <li>Define permission in <code>*.permissions.yml</code>.</li>
+        <li>Register EventSubscriber in <code>*.services.yml</code>.</li>
+      </ul>
+
+      <h2>10. Testing Checklist</h2>
+      <p><strong>Ensure</strong>:</p>
+      <ul>
+        <li>Workflow is set up and restricts approvals to Editors.</li>
+        <li>Emails are sent for "Needs Review" transitions.</li>
+        <li>
+          Dashboard shows only "Needs Review" articles, accessible only to
+          Editors.
+        </li>
+        <li>Code follows standards, no deprecated APIs.</li>
+        <li>Documentation is clear and complete.</li>
+      </ul>
+
+      <h2>Key Points for Beginners</h2>
+      <ul>
+        <li>
+          <strong>Module Name</strong>: Use something like
+          <code>article_workflow</code>.
+        </li>
+        <li>
+          <strong>Key Components</strong>:
+          <ul>
+            <li>
+              <strong>Workflow</strong>: Use Drupal’s Workflow module (in core).
+            </li>
+            <li><strong>EventSubscriber</strong>: For email notifications.</li>
+            <li><strong>Controller</strong>: For the dashboard.</li>
+            <li>
+              <strong>Access Control</strong>: Use permissions and access
+              checks.
+            </li>
+            <li>
+              <strong>Recipe</strong>: Bundle configuration in a YAML file.
+            </li>
+          </ul>
+        </li>
+        <li>
+          <strong>Start Small</strong>:
+          <ol>
+            <li>Create module skeleton (<code>.info.yml</code>).</li>
+            <li>Define the workflow.</li>
+            <li>Build the dashboard route and controller.</li>
+            <li>Add the EventSubscriber for emails.</li>
+            <li>Implement permissions and access control.</li>
+            <li>Write the Recipe and documentation.</li>
+          </ol>
+        </li>
+      </ul>
+    </div>
+  </body>
+</html>

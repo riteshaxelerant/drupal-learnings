@@ -1,0 +1,45 @@
+<?php
+
+/**
+ * @file
+ * Primary module hooks for Article Review Workflow module.
+ */
+
+use Drupal\Core\Entity\EntityInterface;
+
+/**
+ * Implements hook_mail().
+ */
+function article_review_workflow_mail($key, &$message, $params) {
+  switch ($key) {
+    case 'review_notify':
+      $message['subject'] = $params['subject'];
+      $message['body'][] = $params['message'];
+      break;
+      
+    case 'published_notify':
+      $message['subject'] = $params['subject'];
+      $message['body'][] = $params['message'];
+      break;
+  }
+}
+
+/**
+ * Implements hook_entity_insert().
+ * 
+ * Delegates to EventSubscriber to follow requirements architecture.
+ */
+function article_review_workflow_entity_insert(EntityInterface $entity) {
+  $subscriber = \Drupal::service('article_review_workflow.content_moderation_subscriber');
+  $subscriber->checkAndNotify($entity, TRUE);
+}
+
+/**
+ * Implements hook_entity_update().
+ * 
+ * Delegates to EventSubscriber to follow requirements architecture.
+ */
+function article_review_workflow_entity_update(EntityInterface $entity) {
+  $subscriber = \Drupal::service('article_review_workflow.content_moderation_subscriber');
+  $subscriber->checkAndNotify($entity, FALSE);
+}
