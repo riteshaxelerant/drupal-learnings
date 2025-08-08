@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Product Catalog Custom Module Specification (Drupal 11)</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 40px;
+        line-height: 1.6;
+      }
+      h1,
+      h2,
+      h3 {
+        color: #2c3e50;
+      }
+      h1 {
+        font-size: 24px;
+      }
+      h2 {
+        font-size: 20px;
+      }
+      h3 {
+        font-size: 18px;
+      }
+      p {
+        margin: 10px 0;
+      }
+      ul,
+      ol {
+        margin: 10px 0;
+        padding-left: 20px;
+      }
+      code {
+        background: #f4f4f4;
+        padding: 2px 4px;
+        border-radius: 4px;
+      }
+      pre {
+        background: #f4f4f4;
+        padding: 10px;
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+      .section {
+        margin-bottom: 20px;
+      }
+      .page-break {
+        border-top: 1px solid #ccc;
+        margin: 20px 0;
+        padding-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Product Catalog Custom Module Specification (Drupal 11)</h1>
+
+    <div class="section">
+      <h2>Overview</h2>
+      <p>
+        This specification outlines a Drupal 11 custom module for a Product
+        Catalog system, designed to cover a comprehensive set of Drupal
+        site-building and development concepts. The module provides a functional
+        product listing system with features for both site admins and end users,
+        incorporating content types, taxonomy, views, custom forms, AJAX,
+        modals, and advanced Drupal APIs. The goal is to create a practical,
+        hands-on project that exercises all learned topics, including hooks,
+        services, caching, and multilingual support.
+      </p>
+    </div>
+
+    <div class="section page-break">
+      <h2>Content Structures & Core Features</h2>
+      <p>
+        The module leverages Drupal core and contributed modules to create a
+        robust content structure:
+      </p>
+      <ul>
+        <li>
+          <strong>Product Content Type</strong>: A custom content type with
+          fields:
+          <ul>
+            <li>Title (product name)</li>
+            <li>Body/Description (long text, WYSIWYG editor)</li>
+            <li>Price (decimal field)</li>
+            <li>
+              Product Images (Media field, multiple images via Media module)
+            </li>
+            <li>Category (entity reference to Product Category taxonomy)</li>
+            <li>Features (Paragraphs field for flexible content)</li>
+            <li>Availability (boolean/list field for in-stock/backorder)</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Product Categories (Taxonomy)</strong>: A "Product Category"
+          vocabulary for classifying products (e.g., Electronics, Furniture).
+        </li>
+        <li>
+          <strong>Comments (Reviews)</strong>: Enable core Comment module with a
+          "Product Review" comment type for user reviews on products.
+        </li>
+        <li>
+          <strong>Media and Images</strong>: Use core Media module for product
+          images, integrated into the Product content type.
+        </li>
+        <li>
+          <strong>Paragraphs Module</strong>: Create a "Product Feature"
+          Paragraph type for flexible product specifications.
+        </li>
+        <li>
+          <strong>Layout Builder</strong>: Enable Layout Builder for
+          customizable product page layouts.
+        </li>
+        <li>
+          <strong>Views</strong>: Create a page view at
+          <code>/products</code> for listing products with pagination and
+          filters, plus a "Latest Products" block.
+        </li>
+        <li>
+          <strong>Menus</strong>: Add menu links for the product listing page
+          and admin pages in the Main Navigation or Admin menu.
+        </li>
+        <li>
+          <strong>Multilingual Support</strong>: Enable Language, Content
+          Translation, and Configuration Translation modules for translatable
+          products and taxonomy terms.
+        </li>
+        <li>
+          <strong>Contact Form</strong>: Use core Contact module for site-wide
+          contact, with a custom inquiry form for products (detailed below).
+        </li>
+        <li>
+          <strong>User Roles & Permissions</strong>: Define a "Product Manager"
+          role with permissions for managing products and inquiries.
+        </li>
+        <li>
+          <strong>Configuration Management</strong>: Export configurations
+          (content types, views, etc.) to YAML for reproducibility using Drush
+          config-export/import.
+        </li>
+      </ul>
+    </div>
+
+    <div class="section page-break">
+      <h2>Custom Pages and Navigation</h2>
+      <p>
+        The module defines custom pages using Drupal's routing and controller
+        system:
+      </p>
+      <ul>
+        <li>
+          <strong>Product Dashboard</strong>: An admin page at
+          <code>/admin/products/dashboard</code> for Product Managers,
+          displaying product statistics (e.g., total products, recent products).
+          Uses EntityQuery and a custom controller.
+        </li>
+        <li>
+          <strong>Product Import Page</strong>: A page at
+          <code>/admin/products/import</code> with a form for uploading CSV
+          files to import products.
+        </li>
+        <li>
+          <strong>Other Routes</strong>: Potential routes like
+          <code>/products.json</code> for JSON output or a confirmation form for
+          deleting products.
+        </li>
+      </ul>
+      <p>
+        Routes are defined in the module's routing YAML, with permissions and
+        CSRF token requirements, covering Menu API, Custom Page creation, and
+        Permissions.
+      </p>
+    </div>
+
+    <div class="section page-break">
+      <h2>Blocks and Forms (Frontend Features)</h2>
+      <ul>
+        <li>
+          <strong>Latest Products Block</strong>: A custom block plugin
+          (<code>src/Plugin/Block/LatestProductsBlock.php</code>) displaying
+          recent products using EntityQuery. Configurable via block settings
+          form.
+        </li>
+        <li>
+          <strong>Product Inquiry Form Block</strong>: A block with a form for
+          users to submit inquiries about specific products, rendered on product
+          pages.
+        </li>
+        <li>
+          <strong>Confirm Action Form</strong>: A confirmation form at
+          <code>/admin/products/delete-all</code> for deleting all products,
+          accessible only to admins.
+        </li>
+      </ul>
+      <p>These cover Block API, Form API, and rendering forms in blocks.</p>
+    </div>
+
+    <div class="section page-break">
+      <h2>Hooks and Event Subscribers</h2>
+      <p>The module implements various hooks and event subscribers:</p>
+      <ul>
+        <li>
+          <strong>Hooks</strong>:
+          <ul>
+            <li>
+              <code>hook_form_alter()</code>: Modify the Product node edit form
+              (e.g., make Price field required).
+            </li>
+            <li>
+              <code>hook_node_insert()</code>: Enqueue notifications for new
+              products.
+            </li>
+            <li>
+              <code>hook_node_update()</code>: Invalidate cache or update data
+              on product updates.
+            </li>
+            <li>
+              <code>hook_node_delete()</code>: Clean up related data on product
+              deletion.
+            </li>
+            <li>
+              <code>hook_views_data()</code>: Expose custom inquiry table to
+              Views.
+            </li>
+            <li>
+              <code>hook_cron()</code>: Process periodic tasks like sending
+              daily reports.
+            </li>
+            <li><code>hook_permission()</code>: Define custom permissions.</li>
+            <li><code>hook_help()</code>: Provide help text for the module.</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Event Subscribers</strong>:
+          <ul>
+            <li>
+              Subscribe to core events (e.g., node save) and a custom
+              <code>ProductLowStockEvent</code> to send alerts.
+            </li>
+            <li>
+              Defined in <code>src/EventSubscriber</code> with services YAML
+              tagging.
+            </li>
+          </ul>
+        </li>
+      </ul>
+      <p>
+        This covers Hook System, Event Dispatcher, and Event Subscriber topics,
+        contrasting procedural hooks with OOP event subscribers.
+      </p>
+    </div>
+
+    <div class="section page-break">
+      <h2>Interactive Features (AJAX and Modals)</h2>
+      <ul>
+        <li>
+          <strong>AJAX Form Submission</strong>: Product Inquiry Form submits
+          via AJAX, displaying a thank-you message without page reload.
+        </li>
+        <li>
+          <strong>Modal Dialog</strong>: "Quick View" modal for product details,
+          using Drupal's AJAX dialog API.
+        </li>
+        <li>
+          <strong>Dynamic Product Filter</strong>: AJAX-powered filter on the
+          product listing page (using Views AJAX or custom JS).
+        </li>
+        <li>
+          <strong>Autocomplete Field</strong>: Autocomplete field for product
+          names in the inquiry form, using Drupal's autocomplete route.
+        </li>
+      </ul>
+      <p>
+        These features use Drupal's AJAX framework and Dialog API, with custom
+        JS/CSS libraries defined in the module.
+      </p>
+    </div>
+
+    <div class="section page-break">
+      <h2>Scheduled and Bulk Operations</h2>
+      <ul>
+        <li>
+          <strong>Cron Tasks</strong>: Implement <code>hook_cron()</code> for
+          tasks like sending daily product digests or clearing old inquiries.
+        </li>
+        <li>
+          <strong>Queue Worker</strong>: Use Queue API for deferred tasks like
+          sending product notification emails.
+        </li>
+        <li>
+          <strong>Batch Import</strong>: Product CSV import via a batch process
+          to handle large imports without timeouts.
+        </li>
+        <li>
+          <strong>File Handling</strong>: Manage CSV uploads and exports using
+          Drupal's File API.
+        </li>
+      </ul>
+      <p>
+        These cover Cron, Queue, Batch, and File Handling APIs, ensuring
+        efficient processing of heavy tasks.
+      </p>
+    </div>
+
+    <div class="section page-break">
+      <h2>Data Storage and Integration</h2>
+      <ul>
+        <li>
+          <strong>Custom Table</strong>: A <code>product_inquiry</code> table
+          for storing inquiries, defined in <code>hook_schema()</code> and
+          managed via Database API.
+        </li>
+        <li>
+          <strong>Views Integration</strong>: Expose the inquiry table to Views
+          via <code>hook_views_data()</code>.
+        </li>
+        <li>
+          <strong>Entity Queries</strong>: Use EntityQuery for efficient content
+          retrieval (e.g., fetching recent products).
+        </li>
+        <li>
+          <strong>Web Services</strong>: Leverage Drupal's JSON:API for exposing
+          products as JSON, with potential for custom REST endpoints.
+        </li>
+      </ul>
+    </div>
+
+    <div class="section page-break">
+      <h2>Performance and Caching</h2>
+      <ul>
+        <li>
+          <strong>Render Cache</strong>: Apply cache tags (e.g.,
+          <code>node_list</code>, <code>node:product</code>) to blocks and
+          pages.
+        </li>
+        <li>
+          <strong>Efficient Queries</strong>: Use EntityQuery and database
+          indexes for performance.
+        </li>
+        <li>
+          <strong>Cache API</strong>: Cache expensive computations (e.g.,
+          product counts) if needed.
+        </li>
+      </ul>
+      <p>
+        These ensure the module integrates with Drupal's caching system for
+        optimal performance.
+      </p>
+    </div>
+
+    <div class="section page-break">
+      <h2>Multilingual Support and Translations</h2>
+      <ul>
+        <li>
+          <strong>User Interface Strings</strong>: Wrap all strings in
+          <code>t()</code> for localization.
+        </li>
+        <li>
+          <strong>Configuration Translation</strong>: Mark config settings as
+          translatable in schema.
+        </li>
+        <li>
+          <strong>Content Translation</strong>: Enable translation for Product
+          nodes and taxonomy terms.
+        </li>
+      </ul>
+      <p>
+        Tested with a second language (e.g., Spanish) to ensure multilingual
+        compatibility.
+      </p>
+    </div>
+
+    <div class="section page-break">
+      <h2>Module Configuration and Settings</h2>
+      <ul>
+        <li>
+          <strong>Settings Form</strong>: A ConfigFormBase form at
+          <code>/admin/config/product-catalog</code> for settings like
+          notification email or stock thresholds.
+        </li>
+        <li>
+          <strong>State API</strong>: Store runtime values like last cron run
+          timestamp.
+        </li>
+        <li>
+          <strong>Default Configuration</strong>: Optionally include default
+          configs (e.g., views) in <code>config/install</code>.
+        </li>
+      </ul>
+    </div>
+
+    <div class="section page-break">
+      <h2>Best Practices and Final Notes</h2>
+      <ul>
+        <li>
+          <strong>Coding Standards</strong>: Follow Drupal coding standards with
+          proper directory structure and docblocks.
+        </li>
+        <li>
+          <strong>Security</strong>: Validate inputs, use Twig for output, and
+          enforce permissions.
+        </li>
+        <li>
+          <strong>Testing</strong>: Test features with different roles, cron
+          runs, and multilingual setups.
+        </li>
+        <li>
+          <strong>Extensibility</strong>: Design for future enhancements (e.g.,
+          Drupal Commerce integration).
+        </li>
+      </ul>
+      <p>
+        The module covers all learned Drupal concepts, providing a practical,
+        step-by-step implementation guide. Happy coding!
+      </p>
+    </div>
+
+    <div class="section page-break">
+      <h2>Sources</h2>
+      <ul>
+        <li>
+          Drupal Block development:
+          <a href="https://specbee.com">specbee.com</a>
+        </li>
+        <li>Hooks vs Events: <a href="https://specbee.com">specbee.com</a></li>
+        <li>
+          EntityQuery API: <a href="https://drupaleasy.com">drupaleasy.com</a>
+        </li>
+        <li>
+          Passing PHP data to JS:
+          <a href="https://gorannikolovski.com">gorannikolovski.com</a>
+        </li>
+        <li>AJAX Modal dialogs: <a href="https://drupal.org">drupal.org</a></li>
+        <li>Applying patches: <a href="https://vazcell.com">vazcell.com</a></li>
+        <li>
+          Drupal translations: <a href="https://drupalize.me">drupalize.me</a>
+        </li>
+        <li>
+          Module development best practices:
+          <a href="https://spectra.co">spectra.co</a>
+        </li>
+        <li>
+          Performance considerations:
+          <a href="https://spectra.co">spectra.co</a>
+        </li>
+        <li>
+          Views integration:
+          <a href="https://drupal.stackexchange.com"
+            >drupal.stackexchange.com</a
+          >
+        </li>
+      </ul>
+    </div>
+  </body>
+</html>

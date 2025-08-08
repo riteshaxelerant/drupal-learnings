@@ -1,0 +1,10 @@
+/vendor/
+/web/core/
+/web/modules/contrib/
+/web/profiles/contrib/
+/web/themes/contrib/
+/web/sites/*/files/
+/web/sites/*/settings*.php
+/.idea/
+/.phpunit.result.cache
+/node_modules/
