@@ -1,0 +1,12 @@
+services:
+  product_catalog_plus.inquiry_manager:
+    class: Drupal\product_catalog_plus\Service\ProductInquiryManager
+    arguments:
+      - "@database"
+      - "@plugin.manager.mail"
+      - "@config.factory"
+      - "@messenger"
+      - "@logger.factory"
+  product_catalog_plus.stats_manager:
+    class: Drupal\product_catalog_plus\Service\ProductStatsManager
+    arguments: ["@database"]

@@ -1,0 +1,224 @@
+<?php
+
+/**
+ * @file
+ * Primary module hooks for Product Catalog Plus module.
+ */
+
+/**
+ * Implements hook_mail().
+ */
+function product_catalog_plus_mail($key, &$message, $params) {
+  switch ($key) {
+    case 'inquiry_notification':
+      $message['subject'] = t('New product inquiry');
+      $message['body'][] = t('A new inquiry has been submitted for a product.');
+      $message['body'][] = t('Customer Name: @name', ['@name' => $params['name']]);
+      $message['body'][] = t('Customer Email: @email', ['@email' => $params['email']]);
+      $message['body'][] = t('Product ID: @product_id', ['@product_id' => $params['product_id']]);
+      $message['body'][] = t('Message: @message', ['@message' => $params['message']]);
+      break;
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function product_catalog_plus_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+  // Modify Product node edit form.
+  if ($form_id === 'node_product_edit_form' || $form_id === 'node_product_form') {
+    // Make Price field required if it exists.
+    if (isset($form['field_price'])) {
+      $form['field_price']['widget'][0]['value']['#required'] = TRUE;
+      $form['field_price']['widget'][0]['value']['#description'] = t('Price is required for all products.');
+    }
+
+    // Add validation message for product description.
+    if (isset($form['field_product_description'])) {
+      $form['field_product_description']['widget'][0]['value']['#description'] = t('Provide a detailed description of the product.');
+    }
+
+    // Add custom validation for product images.
+    if (isset($form['field_featured_image'])) {
+      $form['field_featured_image']['widget'][0]['#description'] = t('Upload a high-quality featured image for the product.');
+    }
+  }
+}
+
+/**
+ * Implements hook_node_insert().
+ */
+function product_catalog_plus_node_insert(\Drupal\node\NodeInterface $node) {
+  // Only process product nodes.
+  if ($node->bundle() === 'product') {
+    // Log the new product creation.
+    \Drupal::logger('product_catalog_plus')->info('New product created: @title (ID: @id)', [
+      '@title' => $node->getTitle(),
+      '@id' => $node->id(),
+    ]);
+
+    // Invalidate cache tags for product listings.
+    \Drupal::service('cache_tags.invalidator')->invalidateTags([
+      'node_list',
+      'node:' . $node->id(),
+    ]);
+
+    // Send notification to admin (optional).
+    $messenger = \Drupal::messenger();
+    $messenger->addStatus(t('Product "@title" has been created successfully.', ['@title' => $node->getTitle()]));
+  }
+}
+
+/**
+ * Implements hook_node_update().
+ */
+function product_catalog_plus_node_update(\Drupal\node\NodeInterface $node) {
+  // Only process product nodes.
+  if ($node->bundle() === 'product') {
+    // Log the product update.
+    \Drupal::logger('product_catalog_plus')->info('Product updated: @title (ID: @id)', [
+      '@title' => $node->getTitle(),
+      '@id' => $node->id(),
+    ]);
+
+    // Invalidate cache tags for product listings.
+    \Drupal::service('cache_tags.invalidator')->invalidateTags([
+      'node_list',
+      'node:' . $node->id(),
+    ]);
+
+    // Check if price was changed and log it.
+    if ($node->hasField('field_price') && !$node->field_price->isEmpty()) {
+      $price = $node->field_price->value;
+      \Drupal::logger('product_catalog_plus')->info('Product @title price: $@price', [
+        '@title' => $node->getTitle(),
+        '@price' => number_format($price, 2),
+      ]);
+    }
+  }
+}
+
+/**
+ * Implements hook_node_delete().
+ */
+function product_catalog_plus_node_delete(\Drupal\node\NodeInterface $node) {
+  // Only process product nodes.
+  if ($node->bundle() === 'product') {
+    // Log the product deletion.
+    \Drupal::logger('product_catalog_plus')->info('Product deleted: @title (ID: @id)', [
+      '@title' => $node->getTitle(),
+      '@id' => $node->id(),
+    ]);
+
+    // Clean up related inquiries for this product.
+    $database = \Drupal::database();
+    $deleted = $database->delete('product_inquiry')
+      ->condition('product_id', $node->id())
+      ->execute();
+
+    if ($deleted > 0) {
+      \Drupal::logger('product_catalog_plus')->info('Deleted @count inquiries for product @title', [
+        '@count' => $deleted,
+        '@title' => $node->getTitle(),
+      ]);
+    }
+
+    // Invalidate cache tags.
+    \Drupal::service('cache_tags.invalidator')->invalidateTags([
+      'node_list',
+      'node:' . $node->id(),
+    ]);
+  }
+}
+
+/**
+ * Implements hook_views_data_alter().
+ */
+function product_catalog_plus_views_data_alter(array &$data) {
+  // Add inquiry count field to node Views.
+  $data['node_field_data']['inquiry_count'] = [
+    'title' => t('Product Inquiry Count'),
+    'help' => t('Display the number of inquiries for this product.'),
+    'field' => [
+      'id' => 'product_inquiry_count',
+      'title' => t('Product Inquiry Count'),
+      'help' => t('Display the number of inquiries for this product.'),
+    ],
+  ];
+}
+
+/**
+ * Implements hook_cron().
+ */
+function product_catalog_plus_cron() {
+  $database = \Drupal::database();
+  $logger = \Drupal::logger('product_catalog_plus');
+  $state = \Drupal::state();
+
+  // Get the last cron run time for this module.
+  $last_cron = $state->get('product_catalog_plus.last_cron', 0);
+  $current_time = \Drupal::time()->getCurrentTime();
+
+  // Only run daily tasks once per day.
+  if (($current_time - $last_cron) >= 86400) { // 24 hours
+    // Clean up old inquiries (older than 30 days).
+    $cutoff_time = $current_time - (30 * 24 * 60 * 60); // 30 days ago
+    $deleted = $database->delete('product_inquiry')
+      ->condition('created', $cutoff_time, '<')
+      ->execute();
+
+    if ($deleted > 0) {
+      $logger->info('Cleaned up @count old inquiries during cron run.', ['@count' => $deleted]);
+    }
+
+    // Send daily report if there are new inquiries.
+    $yesterday_start = $current_time - 86400;
+    $new_inquiries = $database->select('product_inquiry', 'pi')
+      ->condition('created', $yesterday_start, '>=')
+      ->countQuery()
+      ->execute()
+      ->fetchField();
+
+    if ($new_inquiries > 0) {
+      $logger->info('Daily report: @count new inquiries received yesterday.', ['@count' => $new_inquiries]);
+      
+      // You could send an email report here if needed.
+      // $mail_manager = \Drupal::service('plugin.manager.mail');
+      // $mail_manager->mail('product_catalog_plus', 'daily_report', $admin_email, 'en', ['count' => $new_inquiries]);
+    }
+
+    // Update the last cron run time.
+    $state->set('product_catalog_plus.last_cron', $current_time);
+  }
+
+  // Always log that cron ran.
+  $logger->debug('Product Catalog Plus cron completed successfully.');
+}
+
+/**
+ * Implements hook_help().
+ */
+function product_catalog_plus_help($route_name, \Drupal\Core\Routing\RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.product_catalog_plus':
+      return '<p>' . t('The Product Catalog Plus module provides advanced product catalog functionality with inquiry forms, import capabilities, and comprehensive reporting.') . '</p>' .
+             '<h3>' . t('Features') . '</h3>' .
+             '<ul>' .
+             '<li>' . t('Product inquiry forms with AJAX submission') . '</li>' .
+             '<li>' . t('Product import via CSV files') . '</li>' .
+             '<li>' . t('Product dashboard with statistics') . '</li>' .
+             '<li>' . t('Views integration for inquiry management') . '</li>' .
+             '<li>' . t('Automatic cache invalidation') . '</li>' .
+             '<li>' . t('Cron-based maintenance tasks') . '</li>' .
+             '</ul>' .
+             '<h3>' . t('Usage') . '</h3>' .
+             '<p>' . t('Place the Product Inquiry Form block on product pages to allow customers to submit inquiries. Use the Product Dashboard to view statistics and manage products.') . '</p>';
+
+    case 'entity.node.canonical':
+      $node = $route_match->getParameter('node');
+      if ($node && $node->bundle() === 'product') {
+        return '<p>' . t('This is a product page. Customers can submit inquiries using the inquiry form block.') . '</p>';
+      }
+      break;
+  }
+}

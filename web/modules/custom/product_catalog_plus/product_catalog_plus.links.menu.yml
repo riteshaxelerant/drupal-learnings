@@ -1,0 +1,13 @@
+product_catalog_plus.admin:
+  title: "Product Catalog Dashboard"
+  description: "Manage product catalog features."
+  route_name: product_catalog_plus.dashboard
+  parent: system.admin
+  weight: 10
+
+product_catalog_plus.import:
+  title: "Import Products"
+  description: "Upload CSV file to import products in bulk."
+  route_name: product_catalog_plus.import
+  parent: system.admin
+  weight: 11

@@ -1,0 +1,12 @@
+product_inquiry_form:
+  version: 1.x
+  css:
+    theme:
+      css/product-inquiry-form.css: {}
+  js:
+    js/product-inquiry-form.js: {}
+  dependencies:
+    - core/drupal
+    - core/jquery
+    - core/drupal.ajax
+    - core/once 

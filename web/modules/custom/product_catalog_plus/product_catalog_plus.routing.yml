@@ -1,0 +1,14 @@
+product_catalog_plus.dashboard:
+  path: "/admin/products/dashboard"
+  defaults:
+    _controller: '\Drupal\product_catalog_plus\Controller\DashboardController::dashboard'
+    _title: "Product Dashboard"
+  requirements:
+    _permission: "access product dashboard"
+product_catalog_plus.import:
+  path: "/admin/products/import"
+  defaults:
+    _form: '\Drupal\product_catalog_plus\Form\ProductImportForm'
+    _title: "Import Products"
+  requirements:
+    _permission: "import products"
