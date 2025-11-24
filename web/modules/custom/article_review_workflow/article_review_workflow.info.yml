@@ -1,0 +1,9 @@
+name: Article Review Workflow
+type: module
+description: A custom editorial workflow for Article content type with a dashboard and notifications.
+core_version_requirement: ^11
+package: Custom
+dependencies:
+  - workflows
+  - content_moderation
+  - node

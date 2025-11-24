@@ -1,0 +1,49 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - content_moderation
+id: article_editorial_workflow
+label: 'Article Editorial Workflow'
+type: content_moderation
+type_settings:
+  states:
+    draft:
+      label: Draft
+      weight: -5
+      published: false
+      default_revision: false
+    needs_review:
+      label: 'Needs Review'
+      weight: 0
+      published: false
+      default_revision: false
+    published:
+      label: Published
+      weight: 5
+      published: true
+      default_revision: true
+  transitions:
+    submit_for_review:
+      label: 'Submit for Review'
+      from:
+        - draft
+      to: needs_review
+      weight: 0
+    publish:
+      label: Publish
+      from:
+        - needs_review
+      to: published
+      weight: 1
+    revert_to_draft:
+      label: 'Revert to Draft'
+      from:
+        - needs_review
+        - published
+      to: draft
+      weight: 2
+  entity_types:
+    node:
+      - article
+  default_moderation_state: draft

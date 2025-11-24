@@ -1,0 +1,10 @@
+services:
+  article_review_workflow.article_notification:
+    class: Drupal\article_review_workflow\Service\ArticleNotificationService
+    arguments: ["@plugin.manager.mail", "@current_user", "@config.factory"]
+
+  article_review_workflow.content_moderation_subscriber:
+    class: Drupal\article_review_workflow\EventSubscriber\ContentModerationSubscriber
+    arguments: ["@article_review_workflow.article_notification", "@content_moderation.moderation_information"]
+    tags:
+      - { name: event_subscriber }

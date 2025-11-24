@@ -1,0 +1,15 @@
+article_review_workflow.needs_review_dashboard:
+  path: "/admin/content/needs-review-dashboard"
+  defaults:
+    _controller: '\Drupal\article_review_workflow\Controller\NeedsReviewDashboardController::dashboard'
+    _title: "Needs Review Dashboard"
+  requirements:
+    _permission: "view needs review dashboard"
+
+article_review_workflow.settings:
+  path: "/admin/config/article_review_workflow/settings"
+  defaults:
+    _form: '\Drupal\article_review_workflow\Form\SettingsForm'
+    _title: "Article Review Workflow Settings"
+  requirements:
+    _permission: "administer site configuration"

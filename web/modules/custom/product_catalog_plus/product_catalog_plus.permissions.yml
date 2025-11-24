@@ -1,0 +1,6 @@
+access product dashboard:
+  title: "Access Product Dashboard"
+  description: "Allows users to view the product dashboard page."
+import products:
+  title: "Import Products"
+  description: "Allows users to import products via CSV file."

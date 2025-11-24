@@ -1,0 +1,4 @@
+view needs review dashboard:
+  title: "View Needs Review Dashboard"
+  description: "Allows access to the dashboard that shows articles in Needs Review state."
+  restrict access: true

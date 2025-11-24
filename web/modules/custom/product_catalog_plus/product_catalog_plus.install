@@ -1,0 +1,71 @@
+<?php
+/**
+ * Implements hook_schema().
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function product_catalog_plus_schema() {
+  $schema['product_inquiry'] = [
+    'description' => 'Stores product inquiries submitted via form.',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'product_id' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'The product node ID.',
+      ],
+      'name' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'The customer name.',
+      ],
+      'email' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'The customer email address.',
+      ],
+      'message' => [
+        'type' => 'text',
+        'not null' => TRUE,
+        'description' => 'The inquiry message.',
+      ],
+      'created' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The Unix timestamp when the inquiry was created.',
+      ],
+    ],
+    'primary key' => ['id'],
+    'indexes' => [
+      'product_id' => ['product_id'],
+      'created' => ['created'],
+    ],
+  ];
+
+  return $schema;
+}
+
+/**
+ * Ensure the product_inquiry table exists.
+ */
+function product_catalog_plus_update_111001() {
+  $database = \Drupal::database();
+  
+  if (!$database->schema()->tableExists('product_inquiry')) {
+    $schema = product_catalog_plus_schema();
+    $database->schema()->createTable('product_inquiry', $schema['product_inquiry']);
+    \Drupal::messenger()->addStatus(t('Product inquiry table created successfully.'));
+  }
+  
+  \Drupal::messenger()->addStatus(t('Product Catalog Plus module updated successfully.'));
+}

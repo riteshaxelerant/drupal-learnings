@@ -1,0 +1,15 @@
+name: "Product Catalog Plus"
+type: module
+description: "Custom module for product catalog with advanced Drupal features."
+package: Custom
+core_version_requirement: ^11
+version: 1.0
+dependencies:
+  - node
+  - taxonomy
+  - field
+  - views
+  - paragraphs
+  - media
+  - layout_builder
+  - comment
